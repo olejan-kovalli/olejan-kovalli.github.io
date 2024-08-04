@@ -1,9 +1,9 @@
 //--------sizes--------
-const default_hub_radius = 100;
-const hover_hub_radius = 120;
+const default_hub_radius = 12;
+const hover_hub_radius = 10;
 
-const default_line_width = 30;
-const hover_line_width = 60;
+const default_line_width = 3;
+const hover_line_width = 6;
 
 //--------colors--------
 const default_color = 'blue'

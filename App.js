@@ -376,6 +376,8 @@ function onDrawMouseMove(e){
     
     if (selectedLineId)
         deselectSelectedLine();
+    
+    console.log(e);
 
     updateConnLine(e.offsetX, e.offsetY);
 } 
