@@ -42,6 +42,9 @@ function createHub(cx, cy) {
 
     hub.mouseover(() => onHubMouseOver(id));
     hub.mouseout(() => onHubMouseOut(id));
+
+    hub.touchstart(() => onHubMouseDown(id));
+    hub.touchend(() => onHubMouseDown(id));
     
     hub.on('dragmove', () => onHubDragMove(id));
 
@@ -383,4 +386,6 @@ SVG.on(document, 'DOMContentLoaded', function() {
 
     draw.mousemove((e) => onDrawMouseMove(e));
     draw.mouseup((e) => onDrawMouseUp(e));
+
+    draw.touchmove((e) => onDrawMouseMove(e));
 })
