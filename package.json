@@ -2,8 +2,5 @@
   "dependencies": {
     "@svgdotjs/svg.draggable.js": "^3.0.4",
     "@svgdotjs/svg.js": "^3.2.4"
-  },
-  "devDependencies": {
-    "webpack-cli": "^5.1.4"
   }
 }

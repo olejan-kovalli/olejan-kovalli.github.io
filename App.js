@@ -42,9 +42,6 @@ function createHub(cx, cy) {
 
     hub.mouseover(() => onHubMouseOver(id));
     hub.mouseout(() => onHubMouseOut(id));
-
-    hub.touchstart(() => onHubMouseDown(id));
-    hub.touchend(() => onHubMouseDown(id));
     
     hub.on('dragmove', () => onHubDragMove(id));
 
@@ -158,12 +155,14 @@ function createConnLine() {
 }
 
 function updateConnLine(x_ptr, y_ptr) {
-    var x1 = connLine.attr('x1');
-    var y1 = connLine.attr('y1');
+    //var x1 = connLine.attr('x1');
+    //var y1 = connLine.attr('y1');
 
-    connLine.attr({ x2: x_ptr  + (x_ptr > x1 ? -1 : 1)  });
-    connLine.attr({ y2: y_ptr  + (y_ptr > y1 ? -1 : 1) });
-
+    //connLine.attr({ x2: x_ptr  + (x_ptr > x1 ? -1 : 1)  });
+    //connLine.attr({ y2: y_ptr  + (y_ptr > y1 ? -1 : 1) });
+    
+    connLine.attr({ x2: x_ptr });
+    connLine.attr({ y2: y_ptr });
 }
 
 function highlightConnLine(color){
@@ -182,7 +181,7 @@ function saveConnection() {
 
     connLine.attr({x2: hub.cx()});
     connLine.attr({y2: hub.cy()});
-    connLine.attr({stroke: 'blue'});
+    connLine.attr({stroke: default_color});
     
     var lineId = getNextLineId();
     
@@ -376,8 +375,6 @@ function onDrawMouseMove(e){
     
     if (selectedLineId)
         deselectSelectedLine();
-    
-    console.log(e);
 
     updateConnLine(e.offsetX, e.offsetY);
 } 
@@ -388,6 +385,4 @@ SVG.on(document, 'DOMContentLoaded', function() {
 
     draw.mousemove((e) => onDrawMouseMove(e));
     draw.mouseup((e) => onDrawMouseUp(e));
-
-    draw.touchmove((e) => onDrawMouseMove(e));
 })

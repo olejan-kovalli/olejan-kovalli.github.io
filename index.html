@@ -1,16 +1,32 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>SVG.js</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@3.0/dist/svg.min.js"></script>
-  <script src="/svg.draggable.js/dist/svg.draggable.js"></script>
-  <script src="ViewConfig.js"></script>
-  <script src="App.js"></script>
-</head>
-<body>  
-    <div id="canvas">       
-    </div>
+  <head>
+    <title>Graph Builder</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@3.0/dist/svg.min.js"></script>
+    <script src="node_modules/@svgdotjs/svg.draggable.js/dist/svg.draggable.js"></script>
+    <script src="ViewConfig.js"></script>
+    <script src="App.js"></script>
+  </head>
+  <body> 
+    <div> 
+      <div id="top-container">
+        <p></p>
+        <h1 id="app-title">BUILD YOUR GRAPH</h1>
+        <p></p>
+        <div id="tips">      
+          <div id="tip">Click to create</div>
+          <div id="tip">|</div>
+          <div id="tip">Drag to connect</div>
+          <div id="tip">|</div>
+          <div id="tip">Select to move</div>
+          <div id="tip">|</div>
+          <div id="tip">Double-click to delete</div>
+        </div>
+        <p></p>
+      </div>
+    <div id="canvas">      
+    </div>           
   </body>
 </html>
 
