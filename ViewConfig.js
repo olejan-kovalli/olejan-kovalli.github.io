@@ -1,6 +1,6 @@
 //--------sizes--------
-const default_hub_radius = 10;
-const hover_hub_radius = 12;
+const default_node_radius = 10;
+const hover_node_radius = 12;
 
 const default_line_width = 3;
 const hover_line_width = 6;

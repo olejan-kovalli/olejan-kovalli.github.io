@@ -1,106 +1,130 @@
 var draw;
 
-var hubs = {};
+var nodes = {};
 var lines = {};
 var conn = [];
 
-var isPtrOverHub;
+var isPtrOverNode;
 var isPtrOverLine;
 
 var isConnMode = false;
 
-var selectedHubId;
+var selectedNodeId;
 var selectedLineId;
 
-var connSrcHubId;
-var connDestHubId;
+var connSrcNodeId;
+var connDestNodeId;
 
-var connLine;
+var tempLine;
 
-//--------hubs--------
+//--------nodes--------
 
-function getNextHubId() {
-    if (hubs && Object.keys(hubs).length > 0)
-        return Math.max(...Object.keys(hubs).map(Number)) + 100;
+function getNextNodeId() {
+    if (Object.keys(nodes).length > 0)
+        maxId = Math.max(...Object.keys(nodes).map(Number));
     else
-        return 100;
+        maxId = -100
+
+    return String(maxId + 100);
 }
 
-function createHub(cx, cy) {
-    var id = getNextHubId();
-    var diam = 2 * default_hub_radius;
+function createNode(cx, cy, id=undefined) {
+    if (!id)
+        id = getNextNodeId();
     
-    var hub = draw.circle(diam, diam);
-    hub.center(cx, cy);
-    hub.fill(default_color);
-
-    hub.click(() => onHubClick(id));
-    hub.dblclick(() => onHubDblClick(id));
+    var diam = 2 * default_node_radius;
     
-    hub.mousedown(() => onHubMouseDown(id));
-    hub.mouseup(() => onHubMouseUp(id));
+    var node = draw.circle(diam, diam);
+    node.center(cx, cy);
+    node.fill(default_color);
 
-    hub.mouseover(() => onHubMouseOver(id));
-    hub.mouseout(() => onHubMouseOut(id));
+    node.click(() => onNodeClick(id));
+    node.dblclick(() => onNodeDblClick(id));
     
-    hub.on('dragmove', () => onHubDragMove(id));
+    node.mousedown(() => onNodeMouseDown(id));
+    node.mouseup(() => onNodeMouseUp(id));
 
-    hubs[id] = hub;
+    node.mouseover(() => onNodeMouseOver(id));
+    node.mouseout(() => onNodeMouseOut(id));
+    
+    node.on('dragmove', () => onNodeDragMove(id));
+
+    nodes[id] = node;
 }
 
-function selectHub(id) {
+function selectNode(id) {
     if (id) {
-        selectedHub = hubs[id];
-        selectedHub.attr({ fill: selected_color })
+        selectedNode = nodes[id];
+        selectedNode.attr({ fill: selected_color })
 
-        selectedHub.draggable();
+        selectedNode.draggable();
 
-        selectedHubId = id;
+        selectedNodeId = id;
     }
 }
 
-function deselectSelectedHub() {
-    if (selectedHubId) {
-        selectedHub = hubs[selectedHubId];
-        selectedHub.attr({ fill: default_color })
+function deselectSelectedNode() {
+    if (selectedNodeId) {
+        selectedNode = nodes[selectedNodeId];
+        selectedNode.attr({ fill: default_color })
 
-        selectedHub.draggable(false);
+        selectedNode.draggable(false);
         
-        selectedHubId = undefined;
+        selectedNodeId = undefined;
     }
 }
 
-function highlightHubHover(id){
-    hubs[id].radius(hover_hub_radius);
+function highlightNodeHover(id){
+    nodes[id].radius(hover_node_radius);
 }
 
-function unhighlightHubHover(id){
-    hubs[id].radius(default_hub_radius);
+function unhighlightNodeHover(id){
+    nodes[id].radius(default_node_radius);
 }
 
-function highlightDestHub(color){
-    hubs[connDestHubId].attr({ fill: color });
+function highlightDestNode(color){
+    nodes[connDestNodeId].attr({ fill: color });
 }
 
-function unhighlightDestHub(){
-    if (connDestHubId){
-        hubs[connDestHubId].radius(default_hub_radius);
-        hubs[connDestHubId].attr({ fill: default_color });
+function unhighlightDestNode(){
+    if (connDestNodeId){
+        nodes[connDestNodeId].radius(default_node_radius);
+        nodes[connDestNodeId].attr({ fill: default_color });
     }
 }
 
-function deleteHub(id) {
-    hubs[id].remove();
-    delete hubs[id];
+function deleteNode(id) {
+    nodes[id].remove();
+    delete nodes[id];
 }
 
 //--------lines--------
 
 function getNextLineId() {
-    if (lines && Object.keys(lines).length > 0)
-        return Math.max(...Object.keys(lines).map(Number)) + 100;
+    if (Object.keys(lines).length > 0)
+        maxId = Math.max(...Object.keys(lines).map(Number));
     else
-        return 100;
+        maxId = -100
+
+    return String(maxId + 100);
+}
+
+function createLine(nodeId1, nodeId2, lineId) {
+    
+    var node1 = nodes[nodeId1];
+    var node2 = nodes[nodeId2];
+
+    var line = draw.line(node1.cx(), node1.cy(), node2.cx(), node2.cy());
+    line.attr({ stroke: default_color, 'stroke-width': default_line_width })
+
+    line.insertBefore(nodes[Object.keys(nodes)[0]]);
+        
+    line.mouseover(() => onLineMouseOver(lineId));
+    line.mouseout(() => onLineMouseOut(lineId));
+    line.click(() => onLineClick(lineId));
+    line.dblclick(() => onLineDblClick(lineId));
+    
+    lines[lineId] = line;
 }
 
 function highlightLineHover(id){
@@ -129,9 +153,9 @@ function deselectSelectedLine() {
     }
 }
 
-function deleteLines(hubId) {   
+function deleteLines(nodeId) {   
     for (var cn of conn)
-        if (cn[0] === hubId || cn[1] === hubId) 
+        if (cn[0] === nodeId || cn[1] === nodeId) 
             deleteLine(cn[2])
 }
 
@@ -140,90 +164,76 @@ function deleteLine(id) {
     delete lines[id];
 }
 
-//--------connLine--------
+//--------tempLine--------
 
-function createConnLine() {
-    hub = hubs[connSrcHubId];
+function createTempLine() {
+    node = nodes[connSrcNodeId];
 
-    var cx = hub.cx()
-    var cy = hub.cy()
+    var cx = node.cx()
+    var cy = node.cy()
 
-    connLine = draw.line(cx, cy, cx, cy);
-    connLine.attr({ stroke: inactive_color, 'stroke-width': default_line_width })
+    tempLine = draw.line(cx, cy, cx, cy);
+    tempLine.attr({ stroke: inactive_color, 'stroke-width': default_line_width })
 
-    connLine.insertBefore(hubs[Object.keys(hubs)[0]]);
+    tempLine.insertBefore(nodes[Object.keys(nodes)[0]]);
 }
 
-function updateConnLine(x_ptr, y_ptr) {
-    //var x1 = connLine.attr('x1');
-    //var y1 = connLine.attr('y1');
-
-    //connLine.attr({ x2: x_ptr  + (x_ptr > x1 ? -1 : 1)  });
-    //connLine.attr({ y2: y_ptr  + (y_ptr > y1 ? -1 : 1) });
-    
-    connLine.attr({ x2: x_ptr });
-    connLine.attr({ y2: y_ptr });
+function updateTempLine(x_ptr, y_ptr) {        
+    tempLine.attr({ x2: x_ptr });
+    tempLine.attr({ y2: y_ptr });
 }
 
-function highlightConnLine(color){
-    connLine.attr({ stroke: color });
+function highlightTempLine(color){
+    tempLine.attr({ stroke: color });
 }
 
-function unhighlightConnLine(){
-    connLine.attr({ stroke: inactive_color });
-    connLine.attr({ 'stroke-width': default_line_width });
+function unhighlightTempLine(){
+    tempLine.attr({ stroke: inactive_color });
+    tempLine.attr({ 'stroke-width': default_line_width });
+}
+
+function deleteTempLine() {
+    tempLine.remove();
+    tempLine = undefined;
 }
 
 //--------connectivity------
 
-function saveConnection() {
-    var hub = hubs[connDestHubId];
+function createConnection(nodeId1, nodeId2, lineId=undefined) {
+    if (!lineId)
+        lineId = getNextLineId();
 
-    connLine.attr({x2: hub.cx()});
-    connLine.attr({y2: hub.cy()});
-    connLine.attr({stroke: default_color});
-    
-    var lineId = getNextLineId();
-    
-    connLine.mouseover(() => onLineMouseOver(lineId));
-    connLine.mouseout(() => onLineMouseOut(lineId));
-    connLine.click(() => onLineClick(lineId));
-    connLine.dblclick(() => onLineDblClick(lineId));
-    
-    lines[lineId] = connLine;
-    
-    conn.push([connSrcHubId, connDestHubId, lineId]);
-    
-    connLine = undefined;
+    createLine(nodeId1, nodeId2, lineId);
+    conn.push([nodeId1, nodeId2, lineId]);
 }
 
 function isConnWithSrc() {
     return conn.filter(cn => 
-        (cn[0] === connSrcHubId && cn[1] === connDestHubId) || 
-        (cn[0] === connDestHubId && cn[1] === connSrcHubId)).length > 0;
+        (cn[0] === connSrcNodeId && cn[1] === connDestNodeId) || 
+        (cn[0] === connDestNodeId && cn[1] === connSrcNodeId)).length > 0;
 }
 
-function deleteConn(hubId) {
-    conn = conn.filter(cn => cn[0] !== hubId && cn[1] !== hubId);
+function deleteConn(nodeId) {
+    conn = conn.filter(cn => cn[0] !== nodeId && cn[1] !== nodeId);
 }
 
-//----------hub events------------
+//----------node events------------
 
-function onHubClick(id) {
+function onNodeClick(id) {
     deselectSelectedLine();
 
-    var saved_shid = selectedHubId;
-    deselectSelectedHub();
+    var saved_shid = selectedNodeId;
+    deselectSelectedNode();
     
     if (id !== saved_shid)
-        selectHub(id);
+        selectNode(id);
 }
 
-function onHubDblClick(id) {
-    deselectSelectedHub();
+function onNodeDblClick(id) {
+    deselectSelectedNode();
     deselectSelectedLine();
 
-    deleteHub(id);
+    deleteNode(id);
     deleteLines(id);
     deleteConn(id);
 
@@ -231,80 +241,82 @@ function onHubDblClick(id) {
     isConnMode = false;
 }
 
-function onHubMouseDown(id) {
-    if (id === selectedHubId)
+function onNodeMouseDown(id) {
+    if (id === selectedNodeId)
         return;
 
     isConnMode = true;
-    connSrcHubId = id;
+    connSrcNodeId = id;
 
-    createConnLine();
+    createTempLine();
 }
 
-function onHubMouseUp(id) {
+function onNodeMouseUp(id) {
     if (!isConnMode)
         return;
     
-    if (id === connSrcHubId)
-        return;
+    if (id === connSrcNodeId)
+        return;    
 
-    unhighlightDestHub();
+    unhighlightDestNode();
  
     if (isConnWithSrc())
         return;
 
-    saveConnection();
+    createConnection(connSrcNodeId, connDestNodeId);
+    deleteTempLine();
     
     isConnMode = false;
-    connSrcHubId = undefined;
+    connSrcNodeId = undefined;
+
 }
 
-function onHubMouseOver(id) {
+function onNodeMouseOver(id) {
     isPtrOverLine = true;
 
-    if (isConnMode && id !== connSrcHubId ) {
-        connDestHubId = id;
+    if (isConnMode && id !== connSrcNodeId ) {
+        connDestNodeId = id;
 
         if (isConnWithSrc()){
-            highlightDestHub(forbidden_color);
-            highlightConnLine(forbidden_color);
+            highlightDestNode(forbidden_color);
+            highlightTempLine(forbidden_color);
         }
         else {
-            highlightDestHub(allowed_color);
-            highlightConnLine(allowed_color);
+            highlightDestNode(allowed_color);
+            highlightTempLine(allowed_color);
         }
     }
 
-    highlightHubHover(id);
+    highlightNodeHover(id);
 }
 
-function onHubMouseOut(id) {
+function onNodeMouseOut(id) {
     isPtrOverLine = false;
 
     if (isConnMode) {
-        unhighlightDestHub(id);
+        unhighlightDestNode(id);
 
-        if (id !== connSrcHubId)
-            unhighlightConnLine();
+        if (id !== connSrcNodeId)
+            unhighlightTempLine();
     }
 
-    unhighlightHubHover(id);
+    unhighlightNodeHover(id);
 }
 
-function onHubDragMove(id) {
+function onNodeDragMove(id) {
     for (let cn of conn) {
         if (cn[0] === id) {
             var line = lines[cn[2]];
-            var hub = hubs[cn[0]] 
-            line.attr({ x1: hub.cx() });
-            line.attr({ y1: hub.cy() });    
+            var node = nodes[cn[0]] 
+            line.attr({ x1: node.cx() });
+            line.attr({ y1: node.cy() });    
         }
 
         if (cn[1] === id) {
             var line = lines[cn[2]];
-            var hub = hubs[cn[1]] 
-            line.attr({ x2: hub.cx() });
-            line.attr({ y2: hub.cy() });    
+            var node = nodes[cn[1]] 
+            line.attr({ x2: node.cx() });
+            line.attr({ y2: node.cy() });    
         }
     }
 }
@@ -326,7 +338,7 @@ function onLineMouseOut(id) {
 }
 
 function onLineClick(id) {
-    deselectSelectedHub();
+    deselectSelectedNode();
 
     var saved_slid = selectedLineId;
     deselectSelectedLine();
@@ -350,39 +362,126 @@ function onLineDblClick(id) {
 
 //--------draw events--------
 
+function onDrawClick(e){
+    if (isPtrOverNode || isPtrOverLine)
+        return;
+
+    createNode(e.offsetX,e.offsetY);
+}
+
 function onDrawMouseUp(e){
-    if (isConnMode) {
-        if (connLine)
-            connLine.remove();
+    if (!isConnMode)
+        return;
+    
+    if (tempLine)
+        deleteTempLine();
 
         isConnMode = false;
-
-        return;
-    }
-
-    if (isPtrOverHub || isPtrOverLine)
-        return;
-
-    createHub(e.offsetX,e.offsetY);
 }
 
 function onDrawMouseMove(e){
     if (!isConnMode)
         return;
         
-    if (selectedHubId)
-        deselectSelectedHub();
+    if (selectedNodeId)
+        deselectSelectedNode();
     
     if (selectedLineId)
         deselectSelectedLine();
 
-    updateConnLine(e.offsetX, e.offsetY);
+    updateTempLine(e.offsetX, e.offsetY);
 } 
 
 SVG.on(document, 'DOMContentLoaded', function() {
 
     draw = SVG().addTo('#canvas').size('100%', '100%')
 
+    draw.click((e) => onDrawClick(e));
     draw.mousemove((e) => onDrawMouseMove(e));
     draw.mouseup((e) => onDrawMouseUp(e));
 })
+
+function serNode(node){
+    return {
+        id: node.id, 
+        cx: node.cx(), 
+        cy: node.cy()
+    }
+}
+
+function onSave() {
+    var tempLink = document.createElement("a"); 
+    
+    sNodes = {}
+    for (let id in nodes) {
+        sNodes[id] = serNode(nodes[id]);
+    }    
+
+    sConn = []
+    for (let cn of conn) {
+        sConn.push(cn.slice(0, 2));
+    }    
+
+    var taBlob = new Blob([JSON.stringify({'nodes': sNodes, 'conn': sConn}, null, 2)], {type: 'text/plain'});
+    tempLink.setAttribute('href', URL.createObjectURL(taBlob));
+    tempLink.setAttribute('download', 'graph.json');
+    tempLink.click();
+    
+    URL.revokeObjectURL(tempLink.href);
+}
+
+var fileInputElement;
+
+function onLoad() {     
+    fileInputElement = document.getElementById("file-input");
+    fileInputElement.click();
+}
+
+function clear() {
+    for(var id of Object.keys(nodes)){
+        nodes[id].remove();
+    }
+
+    nodes = {};
+
+    for(var id of Object.keys(lines)){
+        lines[id].remove();
+    }
+
+    lines = {};
+
+    conn.length = 0;
+}
+
+function handleFiles() {
+    let reader = new FileReader();
+    
+    reader.onload = function() {  
+        
+        clear();
+
+        try {            
+            var jsonContent = JSON.parse(reader.result);
+
+            var sNodes = jsonContent['nodes'];
+            var sConn = jsonContent['conn'];
+            
+            for (let id in sNodes) {
+                var sn = sNodes[id];
+                createNode(sn.cx, sn.cy, id);
+            }
+
+            for (let cn of sConn) {                
+                createConnection(cn[0], cn[1]);
+            }
+        }
+        catch 
+        {
+            clear();
+            alert('Error: File is invalid!');
+        }
+    
+    };
+
+    reader.readAsText(fileInputElement.files[0]);
+}

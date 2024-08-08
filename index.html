@@ -16,15 +16,22 @@
       <div id="top-container">
         <p></p>
         <h1 id="app-title">BUILD YOUR GRAPH</h1>
-        <p></p>
+        <p></p> 
         <div id="tips">      
-          <div id="tip">Click to create</div>
+          <div id="tip">Click to create node</div>
           <div id="tip">|</div>
-          <div id="tip">Drag to connect</div>
+          <div id="tip">Drag to connnect nodes</div>
+        </div>
+        <div id="tips">
+          <div id="tip">Select node to move it</div>
           <div id="tip">|</div>
-          <div id="tip">Select to move</div>
-          <div id="tip">|</div>
-          <div id="tip">Double-click to delete</div>
+          <div id="tip">Double-click to delete item</div>
+        </div>
+        <p></p>
+        <div id="buttons-container">
+          <button onclick="onSave()">Save</button>
+          <button onclick="onLoad()">Load</button>
+          <input hidden type="file" id="file-input" onchange="handleFiles()"/>
         </div>
         <p></p>
       </div>
