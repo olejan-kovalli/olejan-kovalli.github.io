@@ -429,27 +429,6 @@ function serNode(node){
     }
 }
 
-function onSave() {
-    var tempLink = document.createElement("a"); 
-    
-    sNodes = {}
-    for (let id in nodes) {
-        sNodes[id] = serNode(nodes[id]);
-    }    
-
-    sConn = []
-    for (let cn of conn) {
-        sConn.push(cn.slice(0, 2));
-    }    
-
-    var taBlob = new Blob([JSON.stringify({'nodes': sNodes, 'conn': sConn}, null, 2)], {type: 'text/plain'});
-    tempLink.setAttribute('href', URL.createObjectURL(taBlob));
-    tempLink.setAttribute('download', 'graph.json');
-    tempLink.click();
-    
-    URL.revokeObjectURL(tempLink.href);
-}
-
 var fileInputElement;
 
 function onLoad() {     
@@ -488,4 +467,30 @@ function handleFiles() {
     };
 
     reader.readAsText(fileInputElement.files[0]);
+}
+
+function onSave() {
+    if (Object.keys(nodes).length === 0) {
+        alert('Graph is empty! Nothing to save.')
+        return;
+    }
+
+    var tempLink = document.createElement("a"); 
+    
+    sNodes = {}
+    for (let id in nodes) {
+        sNodes[id] = serNode(nodes[id]);
+    }    
+
+    sConn = []
+    for (let cn of conn) {
+        sConn.push(cn.slice(0, 2));
+    }    
+
+    var taBlob = new Blob([JSON.stringify({'nodes': sNodes, 'conn': sConn}, null, 2)], {type: 'text/plain'});
+    tempLink.setAttribute('href', URL.createObjectURL(taBlob));
+    tempLink.setAttribute('download', 'graph.json');
+    tempLink.click();
+    
+    URL.revokeObjectURL(tempLink.href);
 }
