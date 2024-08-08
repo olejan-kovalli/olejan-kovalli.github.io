@@ -432,8 +432,6 @@ function serNode(node){
 var fileInputElement;
 
 function onLoad() {     
-    clear();
-
     fileInputElement = document.getElementById("file-input");
     fileInputElement.click();
 }
@@ -442,6 +440,11 @@ function handleFiles() {
     let reader = new FileReader();
     
     reader.onload = function() {  
+
+        var reservedNodes = nodes;
+        var reservedConn = conn;
+
+        clear();
 
         try {            
             var jsonContent = JSON.parse(reader.result);
@@ -460,8 +463,18 @@ function handleFiles() {
         }
         catch 
         {
-            clear();
             alert('Error: File is invalid!');
+
+            clear()
+            
+            for (let id in reservedNodes) {
+                var sn = reservedNodes[id];
+                createNode(sn.cx(), sn.cy(), id);
+            }
+
+            for (let cn of reservedConn) {                
+                createConnection(cn[0], cn[1]);
+            }
         }
     
     };
