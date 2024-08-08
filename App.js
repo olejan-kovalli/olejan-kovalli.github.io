@@ -17,6 +17,24 @@ var connDestNodeId;
 
 var tempLine;
 
+
+
+function clear() {
+    for(var id of Object.keys(nodes)){
+        nodes[id].remove();
+    }
+
+    nodes = {};
+
+    for(var id of Object.keys(lines)){
+        lines[id].remove();
+    }
+
+    lines = {};
+
+    conn.length = 0;
+}
+
 //--------nodes--------
 
 function getNextNodeId() {
@@ -401,6 +419,8 @@ SVG.on(document, 'DOMContentLoaded', function() {
     draw.mouseup((e) => onDrawMouseUp(e));
 })
 
+//--------serialization--------
+
 function serNode(node){
     return {
         id: node.id, 
@@ -433,32 +453,16 @@ function onSave() {
 var fileInputElement;
 
 function onLoad() {     
+    clear();
+
     fileInputElement = document.getElementById("file-input");
     fileInputElement.click();
-}
-
-function clear() {
-    for(var id of Object.keys(nodes)){
-        nodes[id].remove();
-    }
-
-    nodes = {};
-
-    for(var id of Object.keys(lines)){
-        lines[id].remove();
-    }
-
-    lines = {};
-
-    conn.length = 0;
 }
 
 function handleFiles() {
     let reader = new FileReader();
     
     reader.onload = function() {  
-        
-        clear();
 
         try {            
             var jsonContent = JSON.parse(reader.result);
